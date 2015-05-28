@@ -1,0 +1,127 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function question_schema(){
+	
+	$schema['answer'] = array(
+	  'description' => 'Stores answers.',
+	  'fields' => array(
+	    'aid' => array(
+	      'description' => 'Unique answer ID.',
+	      'type' => 'serial',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'text' => array(
+	      'description' => 'Answer content.',
+	      'type' => 'varchar',
+	      'length' => '255',
+	      'not null' => TRUE,
+	    ),
+	  ),
+	  'primary key' => array('aid'),
+	);
+
+	$schema['question'] = array(
+	  'description' => 'Stores survey questions.',
+	  'fields' => array(
+	    'qid' => array(
+	      'description' => 'Unique question ID.',
+	      'type' => 'serial',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'uid_created' => array(
+	      'description' => 'The users.uid of the user who created the question.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	    ),
+	    'uid_changed' => array(
+	      'description' => 'The users.uid of the user who last edited the question.',
+	      'type' => 'int',
+	      'not null' => FALSE,
+	    ),
+	    'date_created' => array(
+	      'description' => 'The time that the question is created, as a Unix timestamp.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	    ),
+	    'date_changed' => array(
+	      'description' => 'The time that the question was last edited, as a Unix timestamp.',
+	      'type' => 'int',
+	      'not null' => FALSE,
+	    ),
+	    'category' => array(
+	      'description' => 'Category of the question.',
+	      'type' => 'varchar',
+	      'length' => '60',
+	      'not null' => TRUE,
+	    ),
+	    'multiple' => array(
+	      'description' => 'Whether the question allows single (0) or multiple (1) answers.',
+	      'type' => 'int',
+	      'size' => 'tiny',
+	      'not null' => TRUE,
+	      'default' => 0,
+	    ),
+	    'text' => array(
+	      'description' => 'Question content.',
+	      'type' => 'varchar',
+	      'length' => '255',
+	      'not null' => TRUE,
+	    ),
+	  ),
+	  'primary key' => array('qid'),
+	);
+
+	$schema['question_answer'] = array(
+	  'description' => 'Stores possible answers for each questions.',
+	  'fields' => array(
+	    'qid' => array(
+	      'description' => 'Primary Key: question.qid for question.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'aid' => array(
+	      'description' => 'Primary Key: answer.aid for answer.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	  ),
+	);
+
+	$schema['question_answer_users'] = array(
+	  'description' => 'Stores questions with answers by users.',
+	  'fields' => array(
+	    'qid' => array(
+	      'description' => 'Primary Key: question.qid for question.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'aid' => array(
+	      'description' => 'Primary Key: answer.aid for answer.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'uid' => array(
+	      'description' => 'Primary Key: users.uid for users.',
+	      'type' => 'int',
+	      'unsigned' => TRUE,
+	      'not null' => TRUE,
+	    ),
+	    'date_added' => array(
+	      'description' => 'The time that the answer is added by the user, as a Unix timestamp.',
+	      'type' => 'int',
+	      'not null' => TRUE,
+	    ),
+	  ),
+	);
+
+	return $schema;
+}

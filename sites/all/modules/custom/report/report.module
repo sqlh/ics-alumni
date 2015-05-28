@@ -1,0 +1,178 @@
+<?php
+
+/*
+ * Implements hook_menu().
+ */
+function report_menu(){ 
+  $items['reports'] = array(
+    'title' => 'report page',
+    'description' => 'Generate report.',
+    'page callback' => 'report_function',
+    'access arguments' => array('access reports'),
+    'type' => MENU_LOCAL_TASK,
+  );  
+
+
+  $items['reports/result'] = array(
+    'page callback' => '_get_data',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['reports/main_data'] = array(
+    'page callback' => '_get_main_data',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['reports/organization'] = array(
+    'page callback' => '_get_organizations',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_permission().
+ */
+function report_permission(){
+  return array(
+    'access reports' => array(
+      'title' => t('Access Reports Page.'),
+      'description' => t('Access Reports Page on the site.'),
+    ),
+  );
+}
+
+
+function report_function(){
+  drupal_add_js(drupal_get_path('module', 'report') . '/jsapi.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/report.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/download.js');
+  drupal_add_css(drupal_get_path('module', 'report') . '/report.css');
+
+  return theme('report_template');
+} 
+
+
+/*
+ * Implementation of hook_theme().
+ */
+function report_theme(){
+  return array(
+    'report_template' => array(
+      'template' => 'report-page',
+    ),
+  );
+}
+
+
+
+function _get_data() {
+  $sex = $_POST['sex'];
+  //$sex = ;
+
+  if($_POST['qid'] != "--"){
+    $results = db_select('question_answer', 'q')
+      ->fields('q')
+      ->condition('q.qid', $_POST['qid'])
+      ->execute();
+
+    $data = array();
+    array_push($data, array("Option", "Number of Users"));
+    foreach($results as $result){
+      $query = db_select('question_answer_users', 'a');
+      $query->join('users', 'u', 'u.uid = a.uid');
+      $query->join('profile', 'p', 'p.uid = u.uid');
+      $query->join('field_data_field_sex', 's', 's.entity_id = p.pid');
+      $query->join('field_data_field_date_of_birth', 'b', 'b.entity_id = p.pid');
+      $query->join('field_data_field_student_number', 'n', 'n.entity_id = p.pid');
+      
+      
+  //    $query->join('field_data_field_organization_type', 'type', 'type.entity_id = o.field_organization_value');
+
+
+      $query->fields('a')
+            ->fields('u')
+            ->fields('p')
+            ->fields('s')
+            ->fields('b')
+            ->fields('n')
+           // ->fields('o')
+     //       ->fields('type')
+            ->condition('a.qid', $result->qid)
+            ->condition('a.aid', $result->aid);
+
+
+      // User specification
+      if(count($sex) != 2)
+        $query->condition('s.field_sex_value', $sex[0]);
+
+      if($_POST['min_age'] != "")
+        $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) >= :min_age', array(':min_age' => $_POST['min_age']));
+      
+      if($_POST['max_age'] != "")
+        $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) <= :max_age', array(':max_age' => $_POST['max_age']));
+
+      if($_POST['min_batch'] != "")
+        $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) >= :min_batch', array(':min_batch' => $_POST['min_batch']));
+
+      if($_POST['max_batch'] != "")
+        $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) <= :max_batch', array(':max_batch' => $_POST['max_batch']));
+
+      if($_POST['organization_name'] != ""){
+        $query->join('field_data_field_organization', 'o', 'o.entity_id = p.pid');
+        $query->join('field_data_field_organization_name', 'name', 'name.entity_id = o.field_organization_value');
+        $query->where('name.field_organization_name_value = :organization_name', array(':organization_name' => $_POST['organization_name']));
+      }
+
+      $count = $query->execute()->rowCount();
+      $text = db_query("SELECT text FROM {answer} WHERE aid = :aid", array(':aid' => $result->aid))->fetchField();
+      array_push($data, array($text, $count));
+    }
+
+  }
+
+  else{
+    //return all users in site
+  }
+
+  drupal_json_output($data);
+
+}
+
+
+function _get_main_data() {
+  $category = $_POST['category'];
+  
+  $results = db_select('question', 'q')
+    ->fields('q')
+    ->condition('q.category', $category)
+    ->execute();
+
+  $data = array();
+  foreach($results as $result){
+    array_push($data, array($result->qid, $result->text));
+  }
+
+  drupal_json_output($data);
+}
+
+function _get_organizations(){
+
+  $results = db_query("SELECT DISTINCT field_organization_name_value FROM {field_data_field_organization_name}");
+
+  $data = array();
+  foreach($results as $result){
+    array_push($data, $result->field_organization_name_value);
+  }
+
+  drupal_json_output($data);
+
+}
+  
+
+
+

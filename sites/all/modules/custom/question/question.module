@@ -1,0 +1,311 @@
+<?php
+
+
+/**
+* Implements hook_menu().
+*/
+function question_menu() {
+  
+  $items['questions'] = array(
+    'title' => 'Questions Page',
+    'description' => 'View and manage survey questions.',
+    'page callback' => 'question_function',
+    'access arguments' => array('access questions'),
+    'type' => MENU_LOCAL_TASK,
+  );
+
+  
+  $items['questions/list'] = array(
+    'page callback' => '_get_question_list',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/view'] = array(
+    'page callback' => '_get_question_data',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/edit'] = array(
+    'page callback' => '_edit_question',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/delete'] = array(
+    'page callback' => '_delete_question',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/add'] = array(
+    'page callback' => '_add_question',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/edit/answer'] = array(
+    'page callback' => '_edit_answer',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['questions/add/answer'] = array(
+    'page callback' => '_add_answer',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+
+}
+
+
+function question_function(){
+  
+  drupal_add_js(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media/js/jquery.dataTables.min.js');
+  drupal_add_js(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media/js/dataTables.jqueryui.js');
+drupal_add_css(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media/css/jquery.dataTables.min.css');
+  drupal_add_css(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media/css/jquery.dataTables_themeroller.css');
+  drupal_add_css(drupal_get_path('module', 'question') . '/bootstrap3-editable/css/bootstrap-editable.css');
+  drupal_add_js(drupal_get_path('module', 'question') . '/bootstrap3-editable/js/bootstrap-editable.js');
+  
+ drupal_add_js(drupal_get_path('module', 'question') . '/bootstrap-validator/dist/validator.js');
+
+  drupal_add_css(drupal_get_path('module', 'question') . '/bootstrap-select/dist/css/bootstrap-select.css');
+  drupal_add_js(drupal_get_path('module', 'question') . '/bootstrap-select/dist/js/bootstrap-select.js');
+  drupal_add_js(drupal_get_path('module', 'question') . '/chosen/chosen.jquery.js');
+  drupal_add_css(drupal_get_path('module', 'question') . '/chosen/chosen.css');
+  drupal_add_js(drupal_get_path('module', 'question') . '/question.js');
+  return theme('question_template');
+} 
+
+
+/**
+ * Implements hook_permission().
+ */
+function question_permission(){
+  return array(
+    'access questions' => array(
+      'title' => t('Access Questions Page.'),
+      'description' => t('Access Questions Page on the site.'),
+    ),
+    'add question' => array(
+      'title' => t('Add a Question.'),
+      'description' => t('Add a new question in the Questions Page.'),
+    ),
+  );
+}
+
+
+
+/*
+ * Implementation of hook_theme().
+ */
+function question_theme(){
+  return array(
+    'question_template' => array(
+      'template' => 'question-page',
+    ),
+  );
+}
+
+function _get_question_list() {
+  $data = array();
+  $results = db_query("SELECT * FROM {question}");
+
+  foreach ($results as $result) {
+    if(_has_been_answered($result->qid)){
+      $icon = "pencil";
+      $answer_op = "edit";
+    }
+    else{
+      $icon = "plus";
+      $answer_op = "add";
+    }
+
+    $actions = '<span class="hidden">'.$answer_op.'</span><button type="button" id="'.$result->qid.'" class="btn btn-sm btn-primary question_modal" value="view_question_button"><span class="glyphicon glyphicon-open"></span></button> <button type="button" id="'.$result->qid.'" class="btn btn-sm btn-info question_modal" value="view_answer_button"><span class="glyphicon glyphicon-'.$icon.'"></span></button></div>';
+    
+    if(_get_user_role() == 3)
+      $actions .= ' <button type="button" id="'.$result->qid.'" class="btn btn-sm btn-danger question_modal" value="delete_question_button"><span class="glyphicon glyphicon-trash"></span></button>';
+
+    array_push($data, array($result->qid, $result->text, $result->category, $result->multiple, $actions));
+  }
+
+  drupal_json_output($data);
+}
+
+
+function _get_question_data() {
+  global $user;
+  $qid = $_POST['qid'];
+
+  $data = db_query("SELECT * FROM {question} WHERE qid = :qid", array(':qid' => $qid))->fetchObject();
+  $choices = db_query("SELECT aid FROM {question_answer} WHERE qid = :qid", array(':qid' => $qid)); 
+  $choices_text = array();
+  foreach ($choices as $choice) {
+    $text = db_query("SELECT text FROM {answer} WHERE aid = :aid", array(':aid' => $choice->aid))->fetchField();
+    array_push($choices_text, $text);
+  }
+
+  $answers = db_query("SELECT aid FROM {question_answer_users} WHERE qid = :qid AND uid = :uid", array(':qid' => $qid, ':uid' => $user->uid)); 
+  $answers_text = array();
+  foreach ($answers as $answer) {
+    $text = db_query("SELECT text FROM {answer} WHERE aid = :aid", array(':aid' => $answer->aid))->fetchField();
+    array_push($answers_text, $text);
+  }
+  
+
+  $data->choices = $choices_text;
+  $data->answers = $answers_text;
+  $data->role = _get_user_role();
+  $data->answered = _has_been_answered($qid);
+  drupal_json_output($data);
+}
+
+
+function _add_question() {
+  global $user;
+
+  db_insert('question')
+    ->fields(array(
+      'text' => $_POST['text'],
+      'category' => $_POST['category'],
+      'multiple' => $_POST['multiple'],
+      'uid_created' => $user->uid,
+      'date_created' => date(time()),
+    ))
+    ->execute();
+
+  $qid = db_query("SELECT qid FROM {question} WHERE text = :text", array(':text' =>  $_POST['text']))->fetchField();
+
+  _save_choices($qid, $_POST['choices']);
+  drupal_json_output($qid);
+}
+
+function _edit_question() {
+  global $user;
+  $qid = $_POST['qid'];
+
+  db_update('question')
+    ->fields(array(
+      'text' =>  $_POST['text'],
+      'category' =>  $_POST['category'],
+      'multiple' =>  $_POST['multiple'],
+      'uid_changed' => $user->uid,
+      'date_changed' => date(time()),
+    ))
+    ->condition('qid', $qid)
+    ->execute();
+
+  db_delete('question_answer')
+      ->condition('qid', $qid)
+      ->execute();
+
+  _save_choices($qid, $_POST['choices']);
+  drupal_json_output($qid);
+}
+
+
+function _delete_question() {
+  global $user;
+  $uid = $user->uid;
+  $qid = $_POST['qid'];
+
+  db_delete('question')
+      ->condition('qid', $qid)
+      ->execute();
+     
+  db_delete('question_answer_users')
+      ->condition('qid', $qid)
+      ->condition('uid', $uid)
+      ->execute();
+
+  $choices = db_query("SELECT aid FROM {question_answer} WHERE qid = :qid", array(':qid' => $qid)); 
+  
+  foreach ($choices as $choice) {
+    $count = db_query("SELECT aid FROM {question_answer} WHERE aid = :aid", array(':aid' => $choice->aid))->rowCount();
+
+    if($count == 1){
+      db_delete('answer')
+        ->condition('aid', $choice->aid)
+        ->execute();
+    }
+  }
+
+  db_delete('question_answer')
+      ->condition('qid', $qid)
+      ->execute(); 
+
+  drupal_json_output($qid);
+
+}
+
+
+function _add_answer() {
+  $qid =  $_POST['qid'];
+  $input =  $_POST['answers'];
+  global $user;
+
+  db_delete('question_answer_users')
+    ->condition('qid', $qid)
+    ->condition('uid', $user->uid)
+    ->execute();
+
+  $answers = array();
+  is_array($input) ? $answers = array_filter($input) : array_push($answers, $input);
+  
+  foreach ($answers as $answer) {
+    $aid = db_query("SELECT aid FROM {answer} WHERE text = :text", array(':text' => $answer))->fetchField();
+    $query = db_insert('question_answer_users')
+      ->fields(array(
+        'qid' => $qid,
+        'aid' => $aid,
+        'uid' => $user->uid,
+        'date_added' => date(time())
+      ))
+      ->execute();
+  }
+
+  drupal_json_output($_POST['answers']);
+}
+
+
+function _save_choices($qid, $input){
+  $choices = explode(',', $input);
+  foreach ($choices as $choice) {
+    // update answer table
+    db_merge('answer')
+      ->key(array('text' => trim($choice)))
+      ->execute();
+
+    // update 
+    $aid = db_query("SELECT aid FROM {answer} WHERE text = :text", array(':text' => trim($choice)))->fetchField(); 
+    $query = db_insert('question_answer')
+      ->fields(array('qid' => $qid, 'aid' => $aid))
+      ->execute();
+  }
+}
+
+
+function _get_user_role(){
+  global $user;
+
+  if(isset($user->roles[3]))
+    return 3;
+  else if(isset($user->roles[2]))
+    return 2;
+  else if(isset($user->roles[1]))
+    return 1;
+}
+
+
+function _has_been_answered($qid){
+  global $user;  
+  $count = db_query("SELECT DISTINCT qid FROM {question_answer_users} WHERE qid = :qid AND uid = :uid ", array(':qid' => $qid, ':uid' => $user->uid))->rowCount();
+
+  if($count != 0) return true;
+  return false;
+}
+
