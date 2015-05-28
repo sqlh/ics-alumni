@@ -190,18 +190,17 @@
           
       </div>
     </div>
+    <div class="col-sm-offset-7 col-sm-10">
+    <button class="btn btn-default dropdown-toggle" type="button" id="export_dropdown" data-toggle="dropdown" aria-expanded="true" disabled>
+      Export <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu" role="menu" aria-labelledby="export_dropdown">
+      <li role="presentation" id="pdf_button" class="btn-export"><a role="menuitem" tabindex="-1">PDF Document</a></li>
+      <li role="presentation" id="image_button" class="btn-export"><a role="menuitem" tabindex="-1">Image</a></li>
+      <li role="presentation" id="csv_button" class="btn-export"><a role="menuitem" tabindex="-1">CSV File</a></li>
+    </ul>
+  </div>
 
-    <div class="dropdown text-center col-sm-offset-5" style="display:none;">
-      <button class="btn btn-default dropdown-toggle" type="button" id="export_dropdown" data-toggle="dropdown" aria-expanded="true">
-        Export
-        <span class="caret"></span>
-      </button>
-      <ul class="dropdown-menu" role="menu" aria-labelledby="export_dropdown">
-        <li role="presentation" id="pdf_button" class="btn-export"><a role="menuitem" tabindex="-1">PDF Document</a></li>
-        <li role="presentation" id="image_button" class="btn-export"><a role="menuitem" tabindex="-1">Image</a></li>
-        <li role="presentation" id="csv_button" class="btn-export"><a role="menuitem" tabindex="-1">CSV File</a></li>
-      </ul>
-    </div>
 
     <form method='post' action='<?php echo drupal_get_path('module', 'report');?>/saveChartPDF.php' id='savePDFForm'>
       <input type='hidden' id='htmlContentHidden' name='htmlContent' value=''>

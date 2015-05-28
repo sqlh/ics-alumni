@@ -101,7 +101,7 @@
   }
 
   function generateGraph(){
-    var qid = 4;//$('#data_main').val();
+    var qid = $('#data_main').val();
     var min_age = $('#min_age').val();
     var max_age = $('#max_age').val();
     var min_batch = $('#min_batch').val();
@@ -114,7 +114,6 @@
     $(".sex_input:checked").each(function(){
        sex.push($(this).val());
     });
-
 
     $.ajax({
       type : 'post',
@@ -133,21 +132,18 @@
       url : Drupal.settings.basePath + 'reports/result',
       beforeSend: function () {
         $('#visualization_div').hide();
-        $('.dropdown').hide();
+        $('#export_dropdown').attr('disabled','disabled');
         $('#chart_loading').show();
       },
       success : function(data) {
         $('#chart_loading').hide();
         $('#visualization_div').show();
         $('#visualization_div').html(drawChart(data));
-        $('.dropdown').show();
       }
    
     });
     
   }
-//    data.value    data.emaillist    data.message 
-
   function drawChart(values) {
     /* LINE CHART
     var data = google.visualization.arrayToDataTable([
@@ -238,21 +234,7 @@
     chart.draw(data, options);
     csv_array = values.join('\r\n');
 
-
-
-      // var csv = values.map(function(a,i){
-      //   return $.trim($(this).text()).split(/\s*\n\s*/).join(",");
-      // }).toArray().join("\r\n");
-
-      // alert(csv);
-
-
-      //for(i = 0; i < values.length; i++){
-        
-        // for(j = 0; j < values[i].length; j++){
-
-        // }
-       //download(values.join('\r\n'), "tabledata.csv", "text/csv");
+    $('#export_dropdown').removeAttr('disabled');
 
   }
 /*

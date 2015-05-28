@@ -31,7 +31,7 @@ function report_menu(){
     'type' => MENU_CALLBACK,
   );
 
-  return $items;
+  return $items;                                                                                                                 
 }
 
 /**
@@ -128,6 +128,12 @@ function _get_data() {
         $query->where('name.field_organization_name_value = :organization_name', array(':organization_name' => $_POST['organization_name']));
       }
 
+      // if($_POST['organization_type'] != ""){
+      //   $query->join('field_data_field_organization', 'o', 'o.entity_id = p.pid');
+      //   $query->join('field_data_field_organization_type', 'name', 'name.entity_id = o.field_organization_value');
+      //   $query->where('name.field_organization_name_value = :organization_name', array(':organization_name' => $_POST['organization_name']));
+      // }
+
       $count = $query->execute()->rowCount();
       $text = db_query("SELECT text FROM {answer} WHERE aid = :aid", array(':aid' => $result->aid))->fetchField();
       array_push($data, array($text, $count));
@@ -172,7 +178,3 @@ function _get_organizations(){
   drupal_json_output($data);
 
 }
-  
-
-
-
