@@ -1,11 +1,6 @@
 (function($){
   
   $(document).ready(function() {
-    //alert("JS");
-    // $(window).resize(function(){
-    //       drawChart();
-    //     });
-    //var chart;
 
     $("#data_category").on("change", setMainData);
     $("#generate_button").on("click", generateGraph);
@@ -13,16 +8,11 @@
    // $("#export_button").on("click", showModal);
     $(".btn-export").on("click", exportChart);
     google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
-
+    $('#data_visualization').val('pie');
     setFields();
 
   });
 
-  // function showModal(){
-  //   $('.report_modal_body').hide();
-  //   $('#report_modal').modal('show');
-  //   $('#report_body').show();
-  // }
 
   function setFields(){
 
@@ -44,7 +34,7 @@
 
   function exportChart(){
     var id = this.id;
-    alert(id+"~~");
+    //alert(id+"~~");
 
     if(id == 'pdf_button'){
       var htmlContent = $("#uri_div").html();
@@ -63,7 +53,7 @@
     
   //  var main_data = $(this).find('option:selected').val();
   //  alert(main_data);
-    alert(this.value);
+   // alert(this.value);
   }
 
   function setMainData(){
@@ -101,6 +91,7 @@
   }
 
   function generateGraph(){
+    var category = $('#data_category').val();
     var qid = $('#data_main').val();
     var min_age = $('#min_age').val();
     var max_age = $('#max_age').val();
@@ -119,6 +110,7 @@
       type : 'post',
       dataType: 'json',
       data: {
+        'category' : category,
         'qid' : qid,
         'sex' : sex,
         'min_age' : min_age,
@@ -179,7 +171,7 @@
         // chart.draw(data, options);
 
 
-    var chart_type = 'pie';//$('#data_visualization').val();
+    var chart_type = $('#data_visualization').val();
     var data = new google.visualization.DataTable();
     data.addColumn('string', values[0][0]);
     data.addColumn('number', values[0][1]);
@@ -237,31 +229,6 @@
     $('#export_dropdown').removeAttr('disabled');
 
   }
-/*
-
-  function queryCallback(response) {
-    chart.draw(response.getDataTable(), {is3D: true});
-  }
-
-
-  function drawToolbar() {
-    var components = [
-        {type: 'igoogle', datasource: 'https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA',
-         gadget: 'https://www.google.com/ig/modules/pie-chart.xml',
-         userprefs: {'3d': 1}},
-        {type: 'html', datasource: 'https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA'},
-        {type: 'csv', datasource: 'https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA'},
-        {type: 'htmlcode', datasource: 'https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA',
-         gadget: 'https://www.google.com/ig/modules/pie-chart.xml',
-         userprefs: {'3d': 1},
-         style: 'width: 800px; height: 700px; border: 3px solid purple;'}
-    ];
-
-    var container = document.getElementById('toolbar_div');
-    google.visualization.drawToolbar(container, components);
-  };
-
-*/
   
 
 })(jQuery);

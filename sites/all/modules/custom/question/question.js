@@ -85,10 +85,6 @@
     $(document).on('click', '.question_modal', show_modal);
 
   
-
- 
-    
-    // $('.chosen-select').on('change', toggle_button);
     $('#add_question_form').validator().on('submit', function (e) {
       if (e.isDefaultPrevented()) {
         alert('error');
@@ -100,36 +96,6 @@
 
 
 
-    // $('#view_answer_form').validator().on('submit', function (e) {
-    //   if (e.isDefaultPrevented()) {
-    //     alert('error');
-    //   } else {
-    //     alert('succes');
-    //     e.preventDefault();
-    //     add_answer();
-    //   }
-    // });
-    // $('body').on('click', 'try', function() {
-    //     alert("!");
-    //     var table = $('#question_table').DataTable();
-    //     alert( 'Row index: '+table.row( this ).index());
-    // });
-
-    // $('#question_table').DataTable().$('tr').find('button').click(function() {
-    //   var data = $('#question_table').DataTable().fnGetData($(this).closest('tr')[0]);
-    //   var id = data[0];//first cell
-    //   alert(id);// $('#empID').text(id);
-    // });
-
-    // var table = $('#question_table').DataTable();
-    // $("table tbody").on('click', '.select-button', function() {
-    //     alert('Row index:' + $(this).closest('tr').prevAll().length );
-    // });  
-
-    $("#question_table tbody").on('click', '.select-button', function() {
-    //    alert('Row index: ' + $(this).closest('tr').index());
-    });
-
     $('#add_answer_submit').attr('disabled','disabled');
     $('.chosen-select').on('change', function() {
       if($(this).val() != '') {
@@ -139,6 +105,7 @@
         $('#add_answer_submit').attr('disabled','disabled');
       }
     });
+
   
     index = -1;
   }
@@ -229,7 +196,7 @@
       answers = $("#add_answer_select").val();
 
    // alert("~"+answers+"~~");
-
+   //alert(qid+"&");
     if(answers == null) answers = [];
     // alert("ADD ANSWER: "+qid);
     // alert("ANSWERS: "+answers);
@@ -391,6 +358,8 @@
         $('#table_alert').show();
       }
     });
+
+
    
     $("#question_table").DataTable().row(index).remove().draw();
     
