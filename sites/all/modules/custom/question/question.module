@@ -57,6 +57,12 @@ function question_menu() {
     'type' => MENU_CALLBACK,
   );
 
+  $items['questions/user'] = array(
+    'page callback' => '_get_user_role',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
   return $items;
 
 }
@@ -78,7 +84,7 @@ drupal_add_css(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media
   drupal_add_js(drupal_get_path('module', 'question') . '/chosen/chosen.jquery.js');
   drupal_add_css(drupal_get_path('module', 'question') . '/chosen/chosen.css');
   drupal_add_js(drupal_get_path('module', 'question') . '/question.js');
-  return theme('question_template');
+  return theme('question_template', array('user_role' => _get_user_role()));
 } 
 
 
@@ -90,10 +96,6 @@ function question_permission(){
     'access questions' => array(
       'title' => t('Access Questions Page.'),
       'description' => t('Access Questions Page on the site.'),
-    ),
-    'add question' => array(
-      'title' => t('Add a Question.'),
-      'description' => t('Add a new question in the Questions Page.'),
     ),
   );
 }
@@ -129,6 +131,7 @@ function _get_question_list() {
     
     if(_get_user_role() == 3)
       $actions .= ' <button type="button" id="'.$result->qid.'" class="btn btn-sm btn-danger question_modal" value="delete_question_button"><span class="glyphicon glyphicon-trash"></span></button>';
+
 
     array_push($data, array($result->qid, $result->text, $result->category, $result->multiple, $actions));
   }

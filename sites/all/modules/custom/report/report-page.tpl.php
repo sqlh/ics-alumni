@@ -4,8 +4,7 @@
   <body>
   
 
-<div class="container-fluid">
-  <div class="row">
+    <div class="container-full">
       <div class="col-xs-4">
         <div class="bs-example">
           <div class="panel-group" id="accordion">
@@ -59,7 +58,7 @@
                     </h4>
                 </div>
               
-                <div id="collapseTwo" class="panel-collapse collapse">
+                <div id="collapseTwo" class="panel-collapse collapse in">
                     
                         <div class="panel-body">
 
@@ -108,7 +107,7 @@
                                   <label class="col-xs-3 col-sm-offset-1 control-label">Organization Name</label>
                                   <div class="col-xs-7 col-sm-offset-1">
                                     <select id="organization_name" class="form-control" >
-                                      <option value="" selected disabled>Select organization.</option>
+                                      <option value="" selected>--</option>
                                     </select>
                                   </div>
                                 </div>
@@ -117,7 +116,7 @@
                                   <label class="col-xs-3 col-sm-offset-1 control-label">Organization Type</label>
                                   <div class="col-xs-7 col-sm-offset-1">
                                     <select id="organization_type" class="form-control">
-                                      <option value="" selected disabled>Select type.</option>
+                                      <option value="" selected>--</option>
                                       <option value="academic">Academic</option>
                                       <option value="cultural">Cultural</option>
                                       <option value="fraternity">Fraternity</option>
@@ -142,7 +141,7 @@
                         <a class="panel-toggle" data-toggle="collapse" href="#collapseThree">Visualization</a>
                     </h4>
                 </div>
-                <div id="collapseThree" class="panel-collapse collapse">
+                <div id="collapseThree" class="panel-collapse collapse in">
                     <div class="panel-body">
                         <form class="form-horizontal"> 
                           <div class="form-group">
@@ -174,7 +173,6 @@
             <button type="button" class="btn btn-default" id="generate_button">Generate</button>
           </div>
         </div><br><br>
-
       </div>
       
       <div class="col-sm-8">
@@ -186,27 +184,26 @@
           </div>   
           <div id='uri_div' style="width: 900px; height: 400px; display:none;">
           </div> 
-
-          
       </div>
+   
+      <div class="col-sm-offset-7 col-sm-10">
+        <button class="btn btn-default dropdown-toggle" type="button" id="export_dropdown" data-toggle="dropdown" aria-expanded="true" disabled>
+          Export <span class="caret"></span>
+        </button>
+        <ul class="dropdown-menu" role="menu" aria-labelledby="export_dropdown">
+          <li role="presentation" id="pdf_button" class="btn-export"><a role="menuitem" tabindex="-1">PDF Document</a></li>
+          <li role="presentation" id="image_button" class="btn-export"><a role="menuitem" tabindex="-1">Image</a></li>
+          <li role="presentation" id="csv_button" class="btn-export"><a role="menuitem" tabindex="-1">CSV File</a></li>
+        </ul>
+      </div>
+
     </div>
-    <div class="col-sm-offset-7 col-sm-10">
-    <button class="btn btn-default dropdown-toggle" type="button" id="export_dropdown" data-toggle="dropdown" aria-expanded="true" disabled>
-      Export <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu" role="menu" aria-labelledby="export_dropdown">
-      <li role="presentation" id="pdf_button" class="btn-export"><a role="menuitem" tabindex="-1">PDF Document</a></li>
-      <li role="presentation" id="image_button" class="btn-export"><a role="menuitem" tabindex="-1">Image</a></li>
-      <li role="presentation" id="csv_button" class="btn-export"><a role="menuitem" tabindex="-1">CSV File</a></li>
-    </ul>
-  </div>
 
-
-    <form method='post' action='<?php echo drupal_get_path('module', 'report');?>/saveChartPDF.php' id='savePDFForm'>
+      <form method='post' action='<?php echo drupal_get_path('module', 'report');?>/saveChartPDF.php' id='savePDFForm'>
       <input type='hidden' id='htmlContentHidden' name='htmlContent' value=''>
     </form>
 
-  </div>
+
   </body>
 </html>
 

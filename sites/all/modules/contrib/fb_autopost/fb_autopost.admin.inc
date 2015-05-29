@@ -84,9 +84,9 @@ function fb_autopost_global_settings($form, &$form_state) {
         $form['page_info']['login_link'] = array(
           '#prefix' => '<p>' . t('You need to connect your Facebook account to fetch the pages you are allowed to post to.') . '</p>',
           '#type' => 'link',
-          '#title' => t('Login to Facebook'),
+          '#title' => t('Login to Facebook!'),
           '#href' => $fb->getLoginUrl(array(
-            'scope' => fb_permissions_get_facebook_permissions(array('manage_pages', 'publish_actions')),
+            'scope' => fb_permissions_get_facebook_permissions(array('manage_pages', 'publish_actions', 'publish_pages')),
             'redirect_uri' => url('admin/config/services/fbautopost/login', array('absolute' => TRUE)),
           )),
         );

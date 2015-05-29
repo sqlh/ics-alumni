@@ -3,9 +3,12 @@
   </head>
  
   <body>
+
 <div class="container-fluid">
   <div class="row">
-  <button type="button" value="add_question_button" class="btn btn-primary btn-sm question_modal">Add Question</button> 
+
+  <?php if($user_role==3) echo '<button type="button" value="add_question_button" class="btn btn-primary btn-sm question_modal">Add Question</button> '?>
+  
 <!-- 
   <a href="#" class="icon">
     <span class="glyphicon glyphicon glyphicon-search"></span>
@@ -71,7 +74,7 @@
               </div>
 
               <div class="form-group">
-                <label for="add_question_choices" class="control-label">Choices</label>
+                <label for="add_question_choices" class="control-label">Possible Answers</label>
                 <input type="text" pattern="^\s*\w(\s*,?\s*\w)*\s*$" class="form-control" id="add_question_choices" placeholder="(Ex. Yes, No)">
                 <span class="help-block with-errors">List down choices separated by a comma.</span>
               </div>
@@ -106,7 +109,7 @@
                     <td><a href="#" id="view_question_multiple" class="editable" data-type="select"></a></td>
                 </tr>
                 <tr>
-                  <th>Choices</th>
+                  <th>Recommended Answers</th>
                     <td><a href="#" id="view_question_choices" class="editable" data-type="text" ></a></td>
                 </tr>
                 <tr>
