@@ -7,11 +7,144 @@
     $(document).on("change", "#data_main", setDetails);
    // $("#export_button").on("click", showModal);
     $(".btn-export").on("click", exportChart);
-    google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
+    $("#reset_button").on("click", function (){
+
+      $(".user_filter").val("");
+      $('#generate_report_form').data('formValidation').resetForm();
+    });
+   // $(function () { $("input,select,checkbox,textarea").not("[type=submit]").jqBootstrapValidation(); } );
+    // $('#generate_report_form').validator().on('submit', function (e) {
+    //   if (e.isDefaultPrevented()) {
+    //     alert('error');
+    //   } else {
+    //     e.preventDefault();
+       
+    //   }
+    // });
+
+  //  google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
     $('#data_visualization').val('pie');
     setFields();
+    setFormValidation();
 
   });
+
+
+
+  function setFormValidation(){
+    
+    $('#generate_report_form')
+      .formValidation({
+          framework: 'bootstrap',
+          err: {
+            container: function($field, validator) {
+              return $field.parent().next('.messageContainer');
+            }
+          },
+          icon: {
+              validating: 'glyphicon glyphicon-refresh'
+          },
+          fields: {
+              min_age: {
+                  validators: {
+                    lessThan: {
+                        inclusive: true,
+                        value: 'max_age',
+                        message: 'Enter a valid range for Age'
+                    },
+                    between: {
+                      min: 0,
+                      max: 100,
+                      message: 'Enter a valid value for the minimum age'
+                    }   
+                }
+              },
+              max_age: {
+                  validators: {
+                      between: {
+                      min: 0,
+                      max: 100,
+                      message: 'Enter a valid value for the maximum age'
+                    } 
+                  }
+              },
+              
+              min_batch: {
+                  validators: {
+                      lessThan: {
+                          inclusive: true,
+                          value: 'max_batch',
+                          message: 'Enter a valid range for Batch'
+                      },
+                      between: {
+                      min: 1970,
+                      max: 2010,
+                      message: 'Enter a valid value for the minimum batch'
+                    }
+                  }
+              },
+              max_batch: {
+                  validators: {
+                      between: {
+                      min: 1970,
+                      max: 2010,
+                      message: 'Enter a valid value for the maximum batch'
+                    } 
+                  }
+              },
+
+              
+          }
+      })
+      .on('change', '[name="max_age"]', function() {
+          if($('[name="min_age"]').val() == "" || $('[name="max_age"]').val() == "")
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_age', false, 'lessThan');
+          
+          else{
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_age', true, 'lessThan');
+            $('#generate_report_form').formValidation('revalidateField', 'min_age');
+          }
+      })
+      .on('change', '[name="min_age"]', function() {
+          if($('[name="min_age"]').val() == "" || $('[name="max_age"]').val() == "")
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_age', false, 'lessThan');
+         
+          else{
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_age', true, 'lessThan');
+            $('#generate_report_form').formValidation('revalidateField', 'min_age');
+          }
+      })
+      .on('change', '[name="max_batch"]', function() {
+          if($('[name="min_batch"]').val() == "" || $('[name="max_batch"]').val() == "")
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_batch', false, 'lessThan');
+
+          else{
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_batch', true, 'lessThan');
+            $('#generate_report_form').formValidation('revalidateField', 'min_batch');
+          }
+      })
+      .on('change', '[name="min_batch"]', function() {
+          if($('[name="min_batch"]').val() == "" || $('[name="max_batch"]').val() == "")
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_batch', false, 'lessThan');
+
+          else{
+            $('#generate_report_form').formValidation('enableFieldValidators', 'min_batch', true, 'lessThan');
+            $('#generate_report_form').formValidation('revalidateField', 'min_batch');
+          }
+      })
+      .on('success.field.fv', function(e, data) {
+        var $parent = data.element.parents('.form-group');
+        $parent.removeClass('has-success');
+      })
+      .on('err.validator.fv', function(e, data) {
+        data.element
+            .data('fv.messages')
+            .find('.help-block[data-fv-for="' + data.field + '"]').hide()
+            .filter('[data-fv-validator="' + data.validator + '"]').show();
+      });
+
+}
+
 
 
   function setFields(){
@@ -34,7 +167,6 @@
 
   function exportChart(){
     var id = this.id;
-    //alert(id+"~~");
 
     if(id == 'pdf_button'){
       var htmlContent = $("#uri_div").html();
@@ -58,7 +190,7 @@
 
   function setMainData(){
     var category = $('#data_category').val();
-    $('#data_main_div').html('<select class="form-control" disabled><option value="0">--</option></select>');        
+    $('#data_main_div').html('<select class="form-control" disabled><option value="" selected>Select data.</option></select>');        
     
     
     if(category != "--"){

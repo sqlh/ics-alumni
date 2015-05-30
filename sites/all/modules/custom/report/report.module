@@ -48,10 +48,18 @@ function report_permission(){
 
 
 function report_function(){
-  drupal_add_js(drupal_get_path('module', 'report') . '/jsapi.js');
-  drupal_add_js(drupal_get_path('module', 'report') . '/report.js');
-  drupal_add_js(drupal_get_path('module', 'report') . '/download.js');
+  drupal_set_title(t('Reports'));
+  
   drupal_add_css(drupal_get_path('module', 'report') . '/report.css');
+  drupal_add_css(drupal_get_path('module', 'report') . '/formvalidation/dist/css/formValidation.css');
+
+  drupal_add_js(drupal_get_path('module', 'report') . '/jsapi.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/formvalidation/dist/js/formValidation.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/formvalidation/dist/js/framework/bootstrap.min.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/download.js');
+  drupal_add_js(drupal_get_path('module', 'report') . '/report.js');
+
+  
 
   return theme('report_template');
 } 

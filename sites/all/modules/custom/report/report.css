@@ -9,3 +9,27 @@
     /* symbol for "collapsed" panels */
     content: "\e080";    /* adjust as needed, taken from bootstrap.css */
 }
+
+
+.body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+
+.title {
+  display:none;
+}
+
+#header {
+display:none;
+}
+
+option:first {
+    color: #999;
+}
+
+select option:first-child{color: grey;}
