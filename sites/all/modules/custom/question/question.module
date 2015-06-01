@@ -251,16 +251,28 @@ function _add_answer() {
   $input =  $_POST['answers'];
   global $user;
 
+
   db_delete('question_answer_users')
     ->condition('qid', $qid)
     ->condition('uid', $user->uid)
     ->execute();
 
+
   $answers = array();
   is_array($input) ? $answers = array_filter($input) : array_push($answers, $input);
   
   foreach ($answers as $answer) {
+
     $aid = db_query("SELECT aid FROM {answer} WHERE text = :text", array(':text' => $answer))->fetchField();
+
+    if($aid == ""){
+      $query = db_insert('answer')
+        ->fields(array('text' => $answer))
+        ->execute();
+
+      $aid = db_query("SELECT aid FROM {answer} WHERE text = :text", array(':text' => $answer))->fetchField();
+    }
+
     $query = db_insert('question_answer_users')
       ->fields(array(
         'qid' => $qid,
@@ -269,6 +281,7 @@ function _add_answer() {
         'date_added' => date(time())
       ))
       ->execute();
+    
   }
 
   drupal_json_output($_POST['answers']);

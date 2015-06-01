@@ -94,17 +94,10 @@
       }
     });
 
-
+//$(".chosen-select").chosen().data('chosen').container.on('change', function() {
 
     $('#add_answer_submit').attr('disabled','disabled');
-    $('.chosen-select').on('change', function() {
-      if($(this).val() != '') {
-        $('#add_answer_submit').removeAttr('disabled');
-      }
-      else{
-        $('#add_answer_submit').attr('disabled','disabled');
-      }
-    });
+    
 
   
     index = -1;
@@ -117,7 +110,7 @@
     select.chosen({
       disable_search_threshold: 10,
       no_results_text: 'Press enter to add:',
-      width: "95%"
+      width: "100%"
     });
 
     var chosen = $('.chosen-container');
@@ -126,7 +119,18 @@
         var option = $("<option>").val(this.value).text(this.value);
         select.append(option);
         select.find(option).prop('selected', true);
+        $('#add_answer_submit').removeAttr('disabled');
         select.trigger("chosen:updated");
+      }
+    });
+
+    $('.chosen-select').on('change', function() {
+      alert(this.value);
+      if(this.value != '') {
+        $('#add_answer_submit').removeAttr('disabled');
+      }
+      else{
+        $('#add_answer_submit').attr('disabled','disabled');
       }
     });
   }
@@ -146,11 +150,11 @@
     });
 
     $('#view_question_category').editable({
-      validate:function(value){
-      //  var v=valib.String.isEmailLike(value)         
-        if(!(value.match(/^[a-zA-Z]+[\w\-\s]*$/)))
-          return 'Please insert valid input.';
-      },
+      source: [
+        {value: 'Career', text: 'Careers'},
+        {value: 'Undergraduate', text: 'Undergraduate Data'},
+        {value: 'Personal', text: 'Personal'}
+      ],
       success: function(response, newValue) {
         $("#edit_question_submit").removeAttr('disabled');
         question_category = newValue.trim();
@@ -172,7 +176,7 @@
 
     $('#view_question_choices').editable({
       validate:function(value){
-        if(!(value.match(/^\s*\w(\s*,?\s*\w)*\s*$/)))
+        if(!(value.match(/^\s*\w[\w\\+#]*(\s*,?\s*\w[\w#\\+#]*)*\s*$/)))
           return 'Please insert valid input.  ';
       },
       success: function(response, newValue) {
@@ -225,6 +229,7 @@
   }
 
   function view_answer(qid){
+    $('#add_answer_submit').attr('disabled','disabled');
     if(qid == '')  qid = $('#question_qid').val();
     $.ajax({
       type : 'post',
@@ -254,9 +259,15 @@
         else $('#select_multiple_div').show();
 
         $.each(data.choices, function (i, choice) {
-          if(data.answers.indexOf(choice) != -1)  attr = 'selected';
+          if(data.answers.indexOf(choice) != -1)
+            attr = 'selected';
           else attr = '';
           $('.chosen-select').append('<option value="'+choice+'" '+attr+'>'+choice+'</option>');
+        });
+
+        $.each(data.answers, function (i, answer) {
+          if(data.choices.indexOf(answer) == -1)
+            $('.chosen-select').append('<option value="'+answer+'" selected>'+answer+'</option>');
         });
 
         $('.chosen-select').trigger("chosen:updated");
@@ -352,8 +363,9 @@
       },
       success : function(data) {
         $('#question_loading').hide();
+        $('#question_modal').data('bs.modal').isShown = true;
         $('#question_modal').modal('hide');
-    //    $("#question_table").DataTable().row(index).remove().draw();
+        $("#question_table").DataTable().row(index).remove().draw();
         $('#table_message').html("Question has been successfully deleted.");
         $('#table_alert').show();
       }
@@ -361,7 +373,7 @@
 
 
    
-    $("#question_table").DataTable().row(index).remove().draw();
+  //  $("#question_table").DataTable().row(index).remove().draw();
     
   }
 

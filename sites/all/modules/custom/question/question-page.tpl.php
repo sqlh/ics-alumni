@@ -7,7 +7,6 @@
 <div class="container-fluid">
   <div class="row">
 
-  <?php if($user_role==3) echo '<button type="button" value="add_question_button" class="btn btn-primary btn-sm question_modal">Add Question</button> '?>
   
 <!-- 
   <a href="#" class="icon">
@@ -21,11 +20,14 @@
   <input type="hidden" id="question_row">
   <input type="hidden" id="question_operation">
 
+
   <div class="alert alert-success fade in" id="table_alert" style="display:none;">
-    <button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-    <div id="table_message"></div>
+      <a href="#" class="close" data-dismiss="alert">&times;</a>
+      <div id="table_message"></div>
   </div>
 
+  <?php if($user_role==3) echo '<button type="button" value="add_question_button" class="btn btn-primary btn-sm question_modal">Add Question</button> '?>
+  
   <div id="table_div">
     <table cellpadding="0" cellspacing="0" border="0" class="display" id="question_table"></table>
   </div>
@@ -61,9 +63,17 @@
             
               <div class="form-group">
                 <label for="add_question_category" class="control-label">Category</label>
-                <input type="text" pattern="^[a-zA-Z]+[\w\-\s]*$" class="form-control" id="add_question_category"  placeholder="Enter category" required>
+                <select id="add_question_category" class="form-control">
+                  <option value="career">Careers</option>
+                  <option value="undergraduate">Undergraduate Data</option>
+                  <option value="personal">Personal</option>
+                </select>
                 <div class="help-block with-errors"></div>
               </div>
+
+
+
+
 
               <div class="form-group">
                 <label for="add_question_multiple" class="control-label">Number of Allowed Answers</label>
@@ -75,7 +85,7 @@
 
               <div class="form-group">
                 <label for="add_question_choices" class="control-label">Possible Answers</label>
-                <input type="text" pattern="^\s*\w(\s*,?\s*\w)*\s*$" class="form-control" id="add_question_choices" placeholder="(Ex. Yes, No)">
+                <input type="text" pattern="^\s*\w[\w\\+#]*(\s*,?\s*\w[\w#\\+#]*)*\s*$" class="form-control" id="add_question_choices" placeholder="(Ex. Yes, No)">
                 <span class="help-block with-errors">List down choices separated by a comma.</span>
               </div>
 
@@ -102,7 +112,7 @@
                 </tr>
                 <tr>
                   <th>Category</th>
-                    <td><a href="#" id="view_question_category" class="editable" data-type="text"></a></td>
+                    <td><a href="#" id="view_question_category" class="editable" data-type="select"></a></td>
                 </tr>
                 <tr>
                   <th>Allowed answers</th>
