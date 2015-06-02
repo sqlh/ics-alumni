@@ -397,8 +397,8 @@
     var organization_name = $('#organization_name').val();
     var organization_type = $('#organization_type').val();
 
-    category = 'basic';
-    main = 'data_location';
+    // category = 'basic';
+    // main = 'data_location';
 
     var sex = [];
     $(".sex_input:checked").each(function(){
@@ -473,7 +473,7 @@
 
         // chart.draw(data, options);
 
-    var chart_type = 'map';//$('#data_visualization').val();
+    var chart_type = $('#data_visualization').val();
   
 
     if(!(values === undefined)){
