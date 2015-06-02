@@ -25,8 +25,20 @@ function report_menu(){
     'type' => MENU_CALLBACK,
   );
 
-  $items['reports/organization'] = array(
-    'page callback' => '_get_organizations',
+  $items['reports/organizations/name'] = array(
+    'page callback' => '_set_organization_name',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['reports/organizations/type'] = array(
+    'page callback' => '_set_organization_type',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['reports/organization/type'] = array(
+    'page callback' => '_get_organization_type',
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -79,82 +91,216 @@ function report_theme(){
 
 
 function _get_data() {
+  $category = $_POST['category'];
+  $main = $_POST['main'];
   $sex = $_POST['sex'];
-  //$sex = ;
+  $min_age = $_POST['min_age'];
+  $max_age = $_POST['max_age'];
+  $min_batch = $_POST['min_batch'];
+  $max_batch = $_POST['max_batch'];
+  $org_name = $_POST['organization_name'];
+  $org_type = $_POST['organization_type'];
+  $values = array();
 
-  if($_POST['qid'] != "--"){
-    $results = db_select('question_answer', 'q')
-      ->fields('q')
-      ->condition('q.qid', $_POST['qid'])
-      ->execute();
+  $str = "";
 
-    $data = array();
-    array_push($data, array("Option", "Number of Users"));
+
+  if($category == 'basic'){
+    
+
+    if($main == 'data_sex'){
+      array_push($values, array('Values', 'Number of Users', 'Sex'));
+      $results = db_query("SELECT DISTINCT field_sex_value FROM {field_data_field_sex}");
+      foreach($results as $result){
+      
+        $query = db_select('field_data_field_sex', 's');
+        $query->join('profile', 'p', 'p.pid = s.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('s')
+              ->condition('s.field_sex_value', $result->field_sex_value);
+        $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $count = $query->execute()->rowCount();
+        
+        if($result->field_sex_value == 0)
+          $text = "Male";
+        else
+          $text = "Female";
+        array_push($values, array($text, $count));
+      }
+    } 
+
+    else if($main == 'data_age'){
+      array_push($values, array('Values', 'Number of Users', 'Age'));
+      $results = db_query('SELECT DISTINCT FLOOR(DATEDIFF(NOW(),field_date_of_birth_value)/365.25) as age FROM field_data_field_date_of_birth');
+
+      foreach($results as $result){
+        $query = db_select('field_data_field_date_of_birth', 'b');
+        $query->join('profile', 'p', 'p.pid = b.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('b')
+              ->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) = :age', array(':age' => $result->age));
+        $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $count = $query->execute()->rowCount();
+        
+        array_push($values, array($result->age, $count));
+      }
+    } 
+
+    else if($main == 'data_batch'){
+      array_push($values, array('Values', 'Number of Users', 'Batch'));
+      $results = db_query('SELECT DISTINCT CAST(LEFT(field_student_number_value, 4) AS UNSIGNED) as batch FROM field_data_field_student_number');
+
+      foreach($results as $result){
+
+        $query = db_select('field_data_field_student_number', 'n');
+        $query->join('profile', 'p', 'p.pid = n.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('n')
+              ->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) = :batch', array(':batch' => $result->batch));
+        $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $count = $query->execute()->rowCount();
+        
+        array_push($values, array($result->batch, $count));
+      }
+    } 
+
+     if($main == 'data_location'){
+      array_push($values, array('Lat', 'Long', 'Location', 'Current Location of Users'));
+      $results = db_query("SELECT * FROM {location}");
+      foreach($results as $result){
+      
+        $query = db_select('location', 'l'); 
+        $query->join('field_data_field_location', 'loc', 'loc.field_location_lid = l.lid');
+        $query->join('profile', 'p', 'p.pid = loc.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('l', array('name', 'latitude', 'longitude'))
+              ->condition('l.name', $result->name);
+        // $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $query->execute();
+        
+        array_push($values, array($result->latitude, $result->longitude, $result->name));
+      }
+    } 
+
+    else if($main == 'data_organization_name'){
+      array_push($values, array('Field', 'Number of Users', 'Users Organizations'));
+      $results = db_query("SELECT DISTINCT field_organization_name_value FROM {field_data_field_organization_name}");
+      
+      foreach($results as $result){
+        $query = db_select('field_data_field_organization_name', 'name'); 
+        $query->join('field_data_field_organization', 'o', 'o.field_organization_value = name.entity_id');
+        $query->join('profile', 'p', 'p.pid = o.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('name')
+              ->condition('name.field_organization_name_value', $result->field_organization_name_value);
+        $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $count = $query->execute()->rowCount();
+        
+        array_push($values, array($result->field_organization_name_value, $count));
+
+
+      }
+    }
+
+    else if($main == 'data_organization_type'){
+      array_push($values, array('Field', 'Number of Users', 'Type of Organizations'));
+      $results = db_query("SELECT DISTINCT field_organization_type_value FROM {field_data_field_organization_type}");
+      
+      foreach($results as $result){
+        $query = db_select('field_data_field_organization_type', 'type'); 
+        $query->join('field_data_field_organization', 'o', 'o.field_organization_value = type.entity_id');
+        $query->join('profile', 'p', 'p.pid = o.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('type')
+              ->condition('type.field_organization_type_value', $result->field_organization_type_value);
+        $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $count = $query->execute()->rowCount();
+        
+        array_push($values, array($result->field_organization_type_value, $count));
+      }
+    }
+
+
+  }
+
+  else if($category == ''){
+    //show all users
+  }
+  else{
+    $question_text = db_query("SELECT text FROM {question} WHERE qid = :qid", array(':qid' => $main))->fetchField();
+    $total = db_query("SELECT DISTINCT uid FROM {question_answer_users} WHERE qid = :qid", array(':qid' => $main))->rowCount();
+    array_push($values, array("Option", "Number of Users", $question_text, $total));
+    $results = db_query("SELECT DISTINCT aid FROM {question_answer_users} WHERE qid = :qid", array(':qid' => $main));
+
     foreach($results as $result){
       $query = db_select('question_answer_users', 'a');
       $query->join('users', 'u', 'u.uid = a.uid');
       $query->join('profile', 'p', 'p.uid = u.uid');
-      $query->join('field_data_field_sex', 's', 's.entity_id = p.pid');
-      $query->join('field_data_field_date_of_birth', 'b', 'b.entity_id = p.pid');
-      $query->join('field_data_field_student_number', 'n', 'n.entity_id = p.pid');
       
-      
-  //    $query->join('field_data_field_organization_type', 'type', 'type.entity_id = o.field_organization_value');
-
-
       $query->fields('a')
-            ->fields('u')
-            ->fields('p')
-            ->fields('s')
-            ->fields('b')
-            ->fields('n')
-           // ->fields('o')
-     //       ->fields('type')
-            ->condition('a.qid', $result->qid)
+            ->condition('a.qid', $main)
             ->condition('a.aid', $result->aid);
-
-
-      // User specification
-      if(count($sex) != 2)
-        $query->condition('s.field_sex_value', $sex[0]);
-
-      if($_POST['min_age'] != "")
-        $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) >= :min_age', array(':min_age' => $_POST['min_age']));
+  
+      $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
       
-      if($_POST['max_age'] != "")
-        $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) <= :max_age', array(':max_age' => $_POST['max_age']));
-
-      if($_POST['min_batch'] != "")
-        $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) >= :min_batch', array(':min_batch' => $_POST['min_batch']));
-
-      if($_POST['max_batch'] != "")
-        $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) <= :max_batch', array(':max_batch' => $_POST['max_batch']));
-
-      if($_POST['organization_name'] != ""){
-        $query->join('field_data_field_organization', 'o', 'o.entity_id = p.pid');
-        $query->join('field_data_field_organization_name', 'name', 'name.entity_id = o.field_organization_value');
-        $query->where('name.field_organization_name_value = :organization_name', array(':organization_name' => $_POST['organization_name']));
-      }
-
-      if($_POST['organization_type'] != ""){
-        $query->join('field_data_field_organization', 'o', 'o.entity_id = p.pid');
-        $query->join('field_data_field_organization_type', 'type', 'type.entity_id = o.field_organization_value');
-        $query->where('type.field_organization_name_value = :organization_type', array(':organization_type' => $_POST['organization_type']));
-      }
-
       $count = $query->execute()->rowCount();
       $text = db_query("SELECT text FROM {answer} WHERE aid = :aid", array(':aid' => $result->aid))->fetchField();
-      array_push($data, array($text, $count));
+      array_push($values, array($text, $count));
     }
-
   }
 
-  else{
-    //return all users in site
+
+  
+  //$data->values = $values;
+
+  drupal_json_output($values);
+
+}
+
+
+
+
+function _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type){
+  
+  if($main != 'data_sex')
+    $query->join('field_data_field_sex', 's', 's.entity_id = p.pid');
+  if($main != 'data_age')
+    $query->join('field_data_field_date_of_birth', 'b', 'b.entity_id = p.pid');
+  if($main != 'data_batch')
+    $query->join('field_data_field_student_number', 'n', 'n.entity_id = p.pid');
+  
+
+  if(count($sex) != 2 && $main != "data_sex")
+    $query->condition('s.field_sex_value', $sex[0]);
+
+  if($min_age != "")
+    $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) >= :min_age', array(':min_age' => $min_age));
+  
+  if($max_age != "")
+    $query->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) <= :max_age', array(':max_age' => $max_age));
+
+  if($min_batch != "")
+    $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) >= :min_batch', array(':min_batch' => $min_batch));
+
+  if($max_batch != "")
+    $query->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) <= :max_batch', array(':max_batch' => $max_batch));
+  
+  if(($org_name != "" || $org_type != "") && ($main != "data_organization_name" && $main != "data_organization_type"))
+    $query->join('field_data_field_organization', 'o', 'o.entity_id = p.pid');
+
+  if($org_name != ""){
+    if($main != "data_organization_name")
+      $query->join('field_data_field_organization_name', 'name', 'name.entity_id = o.field_organization_value');
+    $query->where('name.field_organization_name_value = :organization_name', array(':organization_name' => $org_name));
   }
 
-  drupal_json_output($data);
+  if($org_type != ""){    
+    if($main != "data_organization_type")
+      $query->join('field_data_field_organization_type', 'type', 'type.entity_id = o.field_organization_value');
+    $query->where('type.field_organization_type_value = :organization_type', array(':organization_type' => $org_type));
+  }
 
+  return $query;
 }
 
 
@@ -174,15 +320,46 @@ function _get_main_data() {
   drupal_json_output($data);
 }
 
-function _get_organizations(){
+function _set_organization_name(){
+  $type = $_POST['type'];
 
-  $results = db_query("SELECT DISTINCT field_organization_name_value FROM {field_data_field_organization_name}");
+  if($type == "")
+    $results = db_query("SELECT DISTINCT field_organization_name_value FROM {field_data_field_organization_name}");
+  else{
+    $query = db_select('field_data_field_organization_name', 'n');
+    $query->join('field_data_field_organization_type', 't', 't.entity_id = n.entity_id');
+    $query->fields('n', array('field_organization_name_value'))
+          ->condition('t.field_organization_type_value', $type);
+    $results = $query->execute();
+  }
 
   $data = array();
   foreach($results as $result){
     array_push($data, $result->field_organization_name_value);
   }
-
   drupal_json_output($data);
+}
 
+
+function _set_organization_type(){
+ 
+  $results = db_query("SELECT DISTINCT field_organization_type_value FROM {field_data_field_organization_type}");
+  
+  $data = array();
+  foreach($results as $result)
+    array_push($data, $result->field_organization_type_value);
+  drupal_json_output($data);
+}
+
+
+function _get_organization_type(){
+
+  $query = db_select('field_data_field_organization_type', 't');
+  $query->join('field_data_field_organization_name', 'n', 'n.entity_id = t.entity_id');
+  $query->fields('t', array('field_organization_type_value'))
+        ->condition('n.field_organization_name_value', $_POST['name']);
+  $result = $query->execute()
+                  ->fetchField();
+
+  drupal_json_output($result);
 }

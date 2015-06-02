@@ -382,7 +382,8 @@ function theme_date_combo($variables) {
   if ($element['#required']) {
     $fieldset['#title'] .= " " . theme('form_required_marker');
   }
-  return theme('fieldset', array('element' => $fieldset));
+  //return theme('fieldset', array('element' => $fieldset));
+  return theme('form_element', $variables);
 }
 
 /**

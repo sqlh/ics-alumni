@@ -3,31 +3,95 @@
   $(document).ready(function() {
 
     $("#data_category").on("change", setMainData);
-    $("#generate_button").on("click", generateGraph);
+    //$("#generate_button").on("click", generateReport);
     $(document).on("change", "#data_main", setDetails);
+    $(document).on("change", "#organization_name", setCurrentOrganizationType);
+    $(document).on("change", "#organization_type", setAllOrganizationName);
+
    // $("#export_button").on("click", showModal);
     $(".btn-export").on("click", exportChart);
-    $("#reset_button").on("click", function (){
-
-      $(".user_filter").val("");
-      $('#generate_report_form').data('formValidation').resetForm();
-    });
+    $("#reset_button").on("click", resetFields);
    // $(function () { $("input,select,checkbox,textarea").not("[type=submit]").jqBootstrapValidation(); } );
-    // $('#generate_report_form').validator().on('submit', function (e) {
+    
+    // $('#generate_report_form').on('submit', function (e) {
     //   if (e.isDefaultPrevented()) {
     //     alert('error');
     //   } else {
     //     e.preventDefault();
-       
+    //     generateReport();
+    //     $('#generate_button').removeAttr('disabled');
+
     //   }
     // });
 
-  //  google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
+    $("#generate_button").on("click", function (e){
+     
+
+    //  alert("DO");
+  //    $('#disable_submit').val(Math.random);
+    });
+
+    google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
+    google.load('visualization', '1.0', {'packages':['map'], 'callback': drawChart});
+
     $('#data_visualization').val('pie');
-    setFields();
+    setAllOrganizationName();
+    setAllOrganizationType();
     setFormValidation();
+    prev_value = '';
 
   });
+
+  function resetFields(){
+
+      $('.sex_input').prop('checked', true);
+      setAllOrganizationName();
+      setAllOrganizationType();
+      $('.user_filter').removeAttr('disabled');
+      $(".user_filter").val("");
+      $('#generate_report_form').data('formValidation').resetForm();
+  }
+
+  function setDetails(){
+    if($('#data_category'). val() == 'basic'){
+      
+      if(prev_value == 'data_sex')
+        $('.sex_input').removeAttr('disabled');
+      else if(prev_value == 'data_organization_name')
+        $('#organization_name').removeAttr('disabled');
+      else if(prev_value == 'data_organization_type')
+        $('#organization_type').removeAttr('disabled');
+
+      
+
+      if(this.value == 'data_sex'){
+        $('.sex_input').prop('checked', true);
+        $('.sex_input').attr('disabled', 'disabled');
+      }
+
+      else if(this.value == 'data_age'){
+       // $('.sex_input').attr('disabled', 'disabled');
+      }
+
+      else if(this.value == 'data_batch'){
+       // $('.sex_input').attr('disabled', 'disabled');
+      }
+
+      else if(this.value == 'data_organization_name'){
+        setAllOrganizationName();
+        $('#organization_name').attr('disabled', 'disabled');
+      }
+      else if(this.value == 'data_organization_type'){
+        $('#organization_type').val("");
+        $('#organization_type').attr('disabled', 'disabled');
+      }
+
+      prev_value = this.value;
+      //else if(this.value == 'data_')
+
+      // else if(this.value == 'data_')
+    }
+  }
 
 
 
@@ -35,12 +99,9 @@
     
     $('#generate_report_form')
       .formValidation({
+
           framework: 'bootstrap',
-          err: {
-            container: function($field, validator) {
-              return $field.parent().next('.messageContainer');
-            }
-          },
+          excluded: [':disabled'],
           icon: {
               validating: 'glyphicon glyphicon-refresh'
           },
@@ -93,7 +154,17 @@
                   }
               },
 
-              
+              'sex_input[]': {
+                validators: {
+                    choice: {
+                        min: 1,
+                        max: 2,
+                        message: 'Choose at least one.'
+                    }
+                }
+            },
+
+
           }
       })
       .on('change', '[name="max_age"]', function() {
@@ -123,6 +194,11 @@
             $('#generate_report_form').formValidation('revalidateField', 'min_batch');
           }
       })
+      .on('change', '[class="form-control"]', function() {
+        $('#disable_submit').val(Math.random);
+       
+        $('#generate_report_form').formValidation('revalidateField', 'disable_submit');
+      })
       .on('change', '[name="min_batch"]', function() {
           if($('[name="min_batch"]').val() == "" || $('[name="max_batch"]').val() == "")
             $('#generate_report_form').formValidation('enableFieldValidators', 'min_batch', false, 'lessThan');
@@ -136,33 +212,120 @@
         var $parent = data.element.parents('.form-group');
         $parent.removeClass('has-success');
       })
+      .on('success.form.fv',  function(e) {
+        e.preventDefault();
+        generateReport();
+        //$('#disable_submit').val(Math.random);
+      })
+      .on('err.field.fv', function(e, data) {
+            // data.fv      --> The FormValidation instance
+            // data.field   --> The field name
+            // data.element --> The field element
+        //    alert(data.field +"~!");
+
+
+        //if(data.field == 'sex_input[]')
+            // var messages = data.fv.getMessages(data.element);
+
+            // // Remove the field messages if they're already available
+            // $('#errors').find('li[data-field="' + data.field + '"]').remove();
+
+            // // Loop over the messages
+            // for (var i in messages) {
+            //     // Create new 'li' element to show the message
+            //     $('<li/>')
+            //         .attr('data-field', data.field)
+            //         .wrapInner(
+            //             $('<a/>')
+            //                 .attr('href', 'javascript: void(0);')
+            //                 .html(messages[i])
+            //                 .on('click', function(e) {
+            //                     // Focus on the invalid field
+            //                     data.element.focus();
+            //                 })
+            //         )
+            //         .appendTo('#errors');
+            // }
+
+            // // Hide the default message
+            // // $field.data('fv.messages') returns the default element containing the messages
+            // data.element
+            //     .data('fv.messages')
+            //     .find('.help-block[data-fv-for="' + data.field + '"]')
+            //     .hide();
+        })
       .on('err.validator.fv', function(e, data) {
         data.element
             .data('fv.messages')
             .find('.help-block[data-fv-for="' + data.field + '"]').hide()
             .filter('[data-fv-validator="' + data.validator + '"]').show();
       });
-
-}
-
+  }
 
 
-  function setFields(){
+  function setAllOrganizationName(){
+    if($('#data_main').val() != 'data_organization_name'){
+      var type = $('#organization_type').val();
+      $.ajax({
+        type : 'post',
+        dataType: 'json',
+        data: {
+          'type' : type
+        },
+        url : Drupal.settings.basePath + 'reports/organizations/name',
+        beforeSend: function () {
+          $('#organization_name').attr('disabled','disabled');
+        },
+        success : function(result) {
+          $('#organization_name').html('<option value="" selected>Select name.</option>');
+          $('#organization_name').removeAttr('disabled');
+          for (var i=0; i<result.length; i++)
+            $('#organization_name').append('<option value="'+result[i]+'">'+result[i]+'</option>');
+        }
+      });
+    }
+  }
 
+  function setAllOrganizationType(){
     $.ajax({
       type : 'post',
       dataType: 'json',
-      url : Drupal.settings.basePath + 'reports/organization',
+      url : Drupal.settings.basePath + 'reports/organizations/type',
       beforeSend: function () {
-        $('#organization_name').attr('disabled','disabled');
+        $('#organization_type').attr('disabled','disabled');
       },
       success : function(result) {
-        $('#organization_name').removeAttr('disabled');
+        $('#organization_type').html('<option value="" selected>Select type.</option>');
+        $('#organization_type').removeAttr('disabled');
         for (var i=0; i<result.length; i++)
-          $('#organization_name').append('<option value="'+result[i]+'">'+result[i]+'</option>');
+          $('#organization_type').append('<option value="'+result[i]+'">'+result[i]+'</option>');
       }
     });
 
+  }
+
+  function setCurrentOrganizationType(){
+    if($('#data_main').val() != 'data_organization_type'){
+      var name = $('#organization_name').val();
+      if(name != ""){
+        $.ajax({
+          type : 'post',
+          dataType: 'json',
+          data: {
+            'name' : name
+          },
+          url : Drupal.settings.basePath + 'reports/organization/type',
+          beforeSend: function () {
+            $('#organization_type').attr('disabled','disabled');
+          },
+          success : function(result) {
+            $('#organization_type').removeAttr('disabled');
+            $('#organization_type').val(result);
+          }
+        });
+      }
+      else $('#organization_type').val("");
+    }
   }
 
   function exportChart(){
@@ -181,22 +344,18 @@
   
 
 
-  function setDetails(){
-    
-  //  var main_data = $(this).find('option:selected').val();
-  //  alert(main_data);
-   // alert(this.value);
-  }
-
   function setMainData(){
+    $('.sex_input').removeAttr('disabled');
     var category = $('#data_category').val();
-    $('#data_main_div').html('<select class="form-control" disabled><option value="" selected>Select data.</option></select>');        
-    
-    
-    if(category != "--"){
+   // $('#data_main_div').html('<select class="form-control" disabled><option value="" selected>Select data.</option></select>');        
+    //<select class="form-control col-xs-1" id="data_main" disabled>
+    $('#data_main').attr('disabled', 'disabled');
+    $('#data_main').html('<option value="" selected>Select data.</option>');
+    if(category != ""){
       if(category == 'basic'){
-        var str = '<option value="data_sex">Sex</option><option value="data_age">Age</option><option value="data_batch">Batch</option><option value="data_organization_name">Organization Name</option><option value="data_organization_type">Organization Type</option><option value="data_job_company">Company</option><option value="data_job_position">Job Position</option>';
-        $('#data_main_div').html('<select id="data_main" class="form-control">'+str+'</select>');
+        var str = '<option value="data_sex">Sex</option><option value="data_age">Age</option><option value="data_batch">Batch</option><option value="data_location">Location</option><option value="data_organization_name">Organization Name</option><option value="data_organization_type">Organization Type</option><option value="data_job_company">Company</option><option value="data_job_position">Job Position</option>';
+        $('#data_main').append(str);
+        $('#data_main').removeAttr('disabled');
       }
       else{
         $.ajax({
@@ -214,7 +373,8 @@
             for (var i=0; i<result.length; i++)
               str += '<option value="'+result[i][0]+'">'+result[i][1]+'</option>';
             $('#data_main_loading').hide();
-            $('#data_main_div').html('<select id="data_main" class="form-control">'+str+'</select>');
+            $('#data_main').append(str);
+            $('#data_main').removeAttr('disabled');
           }
         });
       }
@@ -222,9 +382,14 @@
 
   }
 
-  function generateGraph(){
+
+
+  function generateReport(){
+    // $('#data_category').val('basic');
+    // $('#data_main').val('data_sex');
+
     var category = $('#data_category').val();
-    var qid = $('#data_main').val();
+    var main = $('#data_main').val();
     var min_age = $('#min_age').val();
     var max_age = $('#max_age').val();
     var min_batch = $('#min_batch').val();
@@ -232,18 +397,21 @@
     var organization_name = $('#organization_name').val();
     var organization_type = $('#organization_type').val();
 
+    // category = 'basic';
+    // main = 'data_location';
 
     var sex = [];
     $(".sex_input:checked").each(function(){
        sex.push($(this).val());
     });
 
+   // alert(sex);
     $.ajax({
       type : 'post',
       dataType: 'json',
       data: {
         'category' : category,
-        'qid' : qid,
+        'main' : main,
         'sex' : sex,
         'min_age' : min_age,
         'max_age' : max_age,
@@ -266,7 +434,10 @@
       }
    
     });
-    
+
+    // $("#generate_button").text('yeh');
+    // $("#generate_button").removeAttr('disabled');
+    //    alert(":SOMETHINGGG");
   }
   function drawChart(values) {
     /* LINE CHART
@@ -302,64 +473,110 @@
 
         // chart.draw(data, options);
 
-
     var chart_type = $('#data_visualization').val();
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', values[0][0]);
-    data.addColumn('number', values[0][1]);
-    console.log(values[0][0]+", "+values[0][1]);
+  
 
-    for(i = 1; i < values.length; i++){
-      data.addRow([values[i][0], values[i][1]]);
-      console.log(values[i][0]+", "+values[i][1]);
-    }
-
-    var options = {
-      title: 'My Daily Activities'
-    };
-
-    
-    
-    switch (chart_type){
+    if(!(values === undefined)){
       
-      case 'bar':
-        chart = new google.visualization.BarChart(document.getElementById('visualization_div'));
-        break;
-      case 'bubble':
-        chart = new google.visualization.BubbleChart(document.getElementById('visualization_div'));
-        break;
-      case 'combo':
-        chart = new google.visualization.ComboChart(document.getElementById('visualization_div'));
-        break;
-      case 'histogram':
-        chart = new google.visualization.Histogram(document.getElementById('visualization_div'));
-        break;
-      case 'line':
-        chart = new google.visualization.LineChart(document.getElementById('visualization_div'));
-        break;  
-      case 'pie_3d':
-        //options.push('is3D: true');
-      case 'pie':
-        chart = new google.visualization.PieChart(document.getElementById('visualization_div'));
-        break;
-      case 'table':
-        chart = new google.visualization.Table(document.getElementById('visualization_div'));
+      var options = {  
+        backgroundColor: {
+          'opacity': 100
+        },
+      };
      
-      new google.chart.Query('https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA').
-        send(queryCallback);
+      var data = new google.visualization.DataTable();
+      if(chart_type == 'map'){
+        alert(values[0]+'~');
+        data.addColumn('number', values[0][0]);
+        data.addColumn('number', values[0][1]);
+        data.addColumn('string', values[0][2]);
+    
+        console.log(values[0][0]+", "+values[0][1]+", "+values[0][2]);
+
+        for(i = 1; i < values.length; i++){
+          latitude = parseFloat($.trim(values[i][0]));
+          longitude = parseFloat($.trim(values[i][1]));
+          data.addRow([latitude, longitude, values[i][2]]);
+        //  data.addRow([i, {v: myVal, f: myval.toFixed(6)}]); 
+          
+          //data.addRow([values[i][0], values[i][1], values[i][2]]);
+         // console.log(la+", "+values[i][1], values[i][2]);
+        }
+        options.title = values[0][values[0].length-1] + ', Total Number of Respondents: ';
+        options.zoomLevel = 11;
+        options.showTip = true;
+      }
+      
+      else{
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', values[0][0]);
+        data.addColumn('number', values[0][1]);
+        console.log(values[0][0]+", "+values[0][1]);
+
+        for(i = 1; i < values.length; i++){
+          data.addRow([values[i][0], values[i][1]]);
+          console.log(values[i][0]+", "+values[i][1]);
+        }
+        options.title = values[0][2] + ', Total Number of Respondents: ';
+      }
+      
+
+      // var options = {
+      //   title: values[0][2] + 'Total Number of Respondents: '+values[0][3],
+      //   backgroundColor: {        
+      //     'opacity': 100
+      //   },
+      // };
+    
+
+      switch (chart_type){
+        
+        case 'bar':
+          chart = new google.visualization.BarChart(document.getElementById('visualization_div'));
+          break;
+        case 'bubble':
+          chart = new google.visualization.BubbleChart(document.getElementById('visualization_div'));
+          break;
+        case 'combo':
+          chart = new google.visualization.ComboChart(document.getElementById('visualization_div'));
+          break;
+        case 'histogram':
+          chart = new google.visualization.Histogram(document.getElementById('visualization_div'));
+          break;
+        case 'line':
+          chart = new google.visualization.LineChart(document.getElementById('visualization_div'));
+          break;
+        case 'map':
+          chart = new google.visualization.Map(document.getElementById('visualization_div'));
+          break;
+        case 'pie_3d':
+          options.is3D = true;
+        case 'pie':
+          pieSliceText = 'label';
+          chart = new google.visualization.PieChart(document.getElementById('visualization_div'));
+          break;
+        case 'table':
+          chart = new google.visualization.Table(document.getElementById('visualization_div'));
+       
+        new google.chart.Query('https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA').
+          send(queryCallback);
+      }
+
+
+
+      if(chart_type != 'map'){
+        google.visualization.events.addListener(chart, 'ready', function () {
+          document.getElementById('uri_div').innerHTML = '<img src="' + chart.getImageURI() + '">';
+        });
+      }
+
+
+      chart.draw(data, options);
+      // csv_array = values.join('\r\n');
+
+      $('#export_dropdown').removeAttr('disabled');
+
     }
-
-   
-    google.visualization.events.addListener(chart, 'ready', function ()      {
-      document.getElementById('uri_div').innerHTML = '<img src="' + chart.getImageURI() + '">';
-    });
-
-
-    chart.draw(data, options);
-    csv_array = values.join('\r\n');
-
-    $('#export_dropdown').removeAttr('disabled');
-
   }
   
 
