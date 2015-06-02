@@ -114,7 +114,7 @@ function _get_data() {
       foreach($results as $result){
       
         $query = db_select('field_data_field_sex', 's');
-        $query->join('profile', 'p', 'p.uid = s.entity_id');
+        $query->join('profile', 'p', 'p.pid = s.entity_id');
         $query->join('users', 'u', 'u.uid = p.uid');
         $query->fields('s')
               ->condition('s.field_sex_value', $result->field_sex_value);
@@ -135,7 +135,7 @@ function _get_data() {
 
       foreach($results as $result){
         $query = db_select('field_data_field_date_of_birth', 'b');
-        $query->join('profile', 'p', 'p.uid = b.entity_id');
+        $query->join('profile', 'p', 'p.pid = b.entity_id');
         $query->join('users', 'u', 'u.uid = p.uid');
         $query->fields('b')
               ->where('FLOOR(DATEDIFF(NOW(),b.field_date_of_birth_value)/365.25) = :age', array(':age' => $result->age));
@@ -153,7 +153,7 @@ function _get_data() {
       foreach($results as $result){
 
         $query = db_select('field_data_field_student_number', 'n');
-        $query->join('profile', 'p', 'p.uid = n.entity_id');
+        $query->join('profile', 'p', 'p.pid = n.entity_id');
         $query->join('users', 'u', 'u.uid = p.uid');
         $query->fields('n')
               ->where('CAST(LEFT(n.field_student_number_value, 4) AS UNSIGNED) = :batch', array(':batch' => $result->batch));
@@ -161,6 +161,24 @@ function _get_data() {
         $count = $query->execute()->rowCount();
         
         array_push($values, array($result->batch, $count));
+      }
+    } 
+
+     if($main == 'data_location'){
+      array_push($values, array('Lat', 'Long', 'Location', 'Current Location of Users'));
+      $results = db_query("SELECT * FROM {location}");
+      foreach($results as $result){
+      
+        $query = db_select('location', 'l'); 
+        $query->join('field_data_field_location', 'loc', 'loc.field_location_lid = l.lid');
+        $query->join('profile', 'p', 'p.pid = loc.entity_id');
+        $query->join('users', 'u', 'u.uid = p.uid');
+        $query->fields('l', array('name', 'latitude', 'longitude'))
+              ->condition('l.name', $result->name);
+        // $query = _filter_user($query, $category, $main, $sex, $min_age, $max_age, $min_batch, $max_batch, $org_name, $org_type);
+        $query->execute();
+        
+        array_push($values, array($result->latitude, $result->longitude, $result->name));
       }
     } 
 

@@ -32,6 +32,8 @@
     });
 
     google.load('visualization', '1.0', {'packages':['corechart'], 'callback': drawChart});
+    google.load('visualization', '1.0', {'packages':['map'], 'callback': drawChart});
+
     $('#data_visualization').val('pie');
     setAllOrganizationName();
     setAllOrganizationType();
@@ -351,7 +353,7 @@
     $('#data_main').html('<option value="" selected>Select data.</option>');
     if(category != ""){
       if(category == 'basic'){
-        var str = '<option value="data_sex">Sex</option><option value="data_age">Age</option><option value="data_batch">Batch</option><option value="data_organization_name">Organization Name</option><option value="data_organization_type">Organization Type</option><option value="data_job_company">Company</option><option value="data_job_position">Job Position</option>';
+        var str = '<option value="data_sex">Sex</option><option value="data_age">Age</option><option value="data_batch">Batch</option><option value="data_location">Location</option><option value="data_organization_name">Organization Name</option><option value="data_organization_type">Organization Type</option><option value="data_job_company">Company</option><option value="data_job_position">Job Position</option>';
         $('#data_main').append(str);
         $('#data_main').removeAttr('disabled');
       }
@@ -395,6 +397,8 @@
     var organization_name = $('#organization_name').val();
     var organization_type = $('#organization_type').val();
 
+    category = 'basic';
+    main = 'data_location';
 
     var sex = [];
     $(".sex_input:checked").each(function(){
@@ -469,73 +473,110 @@
 
         // chart.draw(data, options);
 
+    var chart_type = 'map';//$('#data_visualization').val();
+  
 
-    var chart_type = $('#data_visualization').val();
-    var data = new google.visualization.DataTable();
-    data.addColumn('string', values[0][0]);
-    data.addColumn('number', values[0][1]);
-    console.log(values[0][0]+", "+values[0][1]);
-
-    for(i = 1; i < values.length; i++){
-      data.addRow([values[i][0], values[i][1]]);
-      console.log(values[i][0]+", "+values[i][1]);
-    }
-
-    var options = {
-      title: values[0][2] + 'Total Number of Respondents: '+values[0][3],
-      backgroundColor: {
-        
-        'opacity': 100
-      },
-    };
-    
-
-// '"options": {' +
-//     '   "alternatingRowStyle": true,' +
-//     '   "showRowNumber" : true' +
-//     '}' +    
-    
-    switch (chart_type){
+    if(!(values === undefined)){
       
-      case 'bar':
-        chart = new google.visualization.BarChart(document.getElementById('visualization_div'));
-        break;
-      case 'bubble':
-        chart = new google.visualization.BubbleChart(document.getElementById('visualization_div'));
-        break;
-      case 'combo':
-        chart = new google.visualization.ComboChart(document.getElementById('visualization_div'));
-        break;
-      case 'histogram':
-        chart = new google.visualization.Histogram(document.getElementById('visualization_div'));
-        break;
-      case 'line':
-        chart = new google.visualization.LineChart(document.getElementById('visualization_div'));
-        break;  
-      case 'pie_3d':
-        options.is3D = true;
-      case 'pie':
-        pieSliceText = 'label';
-        chart = new google.visualization.PieChart(document.getElementById('visualization_div'));
-        break;
-      case 'table':
-        chart = new google.visualization.Table(document.getElementById('visualization_div'));
+      var options = {  
+        backgroundColor: {
+          'opacity': 100
+        },
+      };
      
-      new google.chart.Query('https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA').
-        send(queryCallback);
+      var data = new google.visualization.DataTable();
+      if(chart_type == 'map'){
+        alert(values[0]+'~');
+        data.addColumn('number', values[0][0]);
+        data.addColumn('number', values[0][1]);
+        data.addColumn('string', values[0][2]);
+    
+        console.log(values[0][0]+", "+values[0][1]+", "+values[0][2]);
+
+        for(i = 1; i < values.length; i++){
+          latitude = parseFloat($.trim(values[i][0]));
+          longitude = parseFloat($.trim(values[i][1]));
+          data.addRow([latitude, longitude, values[i][2]]);
+        //  data.addRow([i, {v: myVal, f: myval.toFixed(6)}]); 
+          
+          //data.addRow([values[i][0], values[i][1], values[i][2]]);
+         // console.log(la+", "+values[i][1], values[i][2]);
+        }
+        options.title = values[0][values[0].length-1] + ', Total Number of Respondents: ';
+        options.zoomLevel = 11;
+        options.showTip = true;
+      }
+      
+      else{
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', values[0][0]);
+        data.addColumn('number', values[0][1]);
+        console.log(values[0][0]+", "+values[0][1]);
+
+        for(i = 1; i < values.length; i++){
+          data.addRow([values[i][0], values[i][1]]);
+          console.log(values[i][0]+", "+values[i][1]);
+        }
+        options.title = values[0][2] + ', Total Number of Respondents: ';
+      }
+      
+
+      // var options = {
+      //   title: values[0][2] + 'Total Number of Respondents: '+values[0][3],
+      //   backgroundColor: {        
+      //     'opacity': 100
+      //   },
+      // };
+    
+
+      switch (chart_type){
+        
+        case 'bar':
+          chart = new google.visualization.BarChart(document.getElementById('visualization_div'));
+          break;
+        case 'bubble':
+          chart = new google.visualization.BubbleChart(document.getElementById('visualization_div'));
+          break;
+        case 'combo':
+          chart = new google.visualization.ComboChart(document.getElementById('visualization_div'));
+          break;
+        case 'histogram':
+          chart = new google.visualization.Histogram(document.getElementById('visualization_div'));
+          break;
+        case 'line':
+          chart = new google.visualization.LineChart(document.getElementById('visualization_div'));
+          break;
+        case 'map':
+          chart = new google.visualization.Map(document.getElementById('visualization_div'));
+          break;
+        case 'pie_3d':
+          options.is3D = true;
+        case 'pie':
+          pieSliceText = 'label';
+          chart = new google.visualization.PieChart(document.getElementById('visualization_div'));
+          break;
+        case 'table':
+          chart = new google.visualization.Table(document.getElementById('visualization_div'));
+       
+        new google.chart.Query('https://spreadsheets.google.com/tq?key=pCQbetd-CptHnwJEfo8tALA').
+          send(queryCallback);
+      }
+
+
+
+      if(chart_type != 'map'){
+        google.visualization.events.addListener(chart, 'ready', function () {
+          document.getElementById('uri_div').innerHTML = '<img src="' + chart.getImageURI() + '">';
+        });
+      }
+
+
+      chart.draw(data, options);
+      // csv_array = values.join('\r\n');
+
+      $('#export_dropdown').removeAttr('disabled');
+
     }
-
-   
-    google.visualization.events.addListener(chart, 'ready', function ()      {
-      document.getElementById('uri_div').innerHTML = '<img src="' + chart.getImageURI() + '">';
-    });
-
-
-    chart.draw(data, options);
-    csv_array = values.join('\r\n');
-
-    $('#export_dropdown').removeAttr('disabled');
-
   }
   
 

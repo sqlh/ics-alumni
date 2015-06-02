@@ -91,14 +91,6 @@
                               </div>
                             </div>
 
-                            <div class="form-group form-group-sm">
-                              <label class="control-label col-md-3" for="user_location"><small>Location</small></label>
-                              <div class="col-md-9 col-md-offset-1">
-                                <select id="user_location" class="form-control user_filter" disabled>
-                                  <option>--</option>
-                                </select>
-                              </div>
-                            </div>
 
                             <div class="form-group form-group-sm">
                               <label class="control-label col-md-3" for="organization_name"><small>Org Name</small></label>
@@ -196,7 +188,7 @@
             </form>
         </div>
 
-        
+
 
         <div class="col-sm-9 col-md-9">
             <!-- <div class="well"> -->

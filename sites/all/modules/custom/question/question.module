@@ -88,9 +88,6 @@ drupal_add_css(drupal_get_path('module', 'question') . '/DataTables-1.10.7/media
 } 
 
 
-/**
- * Implements hook_permission().
- */
 function question_permission(){
   return array(
     'access questions' => array(
@@ -100,11 +97,12 @@ function question_permission(){
   );
 }
 
+function question_preprocess_page(&$vars) {
+//  unset($vars['title']);
+  $vars['show_title'] = FALSE;
+}
 
 
-/*
- * Implementation of hook_theme().
- */
 function question_theme(){
   return array(
     'question_template' => array(
@@ -112,6 +110,9 @@ function question_theme(){
     ),
   );
 }
+
+
+
 
 function _get_question_list() {
   $data = array();
